@@ -76,3 +76,22 @@ test('delivered evaluation data reproduce and exclude invalid/out-of-window date
  const c=coverage([{month:'2025-01',data:{polls:[{id:'counter-case',created_at:'2025-01-01T00:30:00+01:00',slots:[{id:'s',start:'2025-01-01T05:00:00Z'}],responses:[{at:'invalid'}],history:[{at:'2025-01-01T05:00:00Z'}],meetings:[]}],notifications:[]}}]);
  assert.equal(c.distinct_dates,1);assert.equal(c.included_records,2);assert.equal(c.excluded.length,2);
 });
+
+test('evaluation histories vary actors and outcomes and retain realistic incomplete coordination',()=>{
+ const fs=require('node:fs'),path=require('node:path'),{quality}=require('../scripts/evaluation-quality.cjs');
+ const dir=path.join(__dirname,'../evaluation'),manifest=JSON.parse(fs.readFileSync(path.join(dir,'manifest.json')));
+ const parts=manifest.partitions.map(p=>JSON.parse(fs.readFileSync(path.join(dir,p.file))));
+ const q=quality(parts);assert.deepEqual(q.issues,[]);assert.equal(q.polls,192);
+ assert.equal(Object.keys(q.organizers).length,4);assert.ok(Object.keys(q.participant_combinations).length>=5);
+ assert.ok(Object.values(q.purposes).every(actors=>Object.keys(actors).length>=3));
+ assert.ok(new Set(q.monthly.map(m=>JSON.stringify(m.ordered_purposes))).size>12);
+ assert.ok(new Set(q.monthly.map(m=>JSON.stringify(m.outcomes))).size>4);
+ for(const n of ['published_polls_with_missing_replies','polls_with_outstanding_withdrawal','polls_with_responses_on_multiple_dates','polls_rescheduled_after_conflict'])assert.ok(q[n]>=24,n);
+ assert.ok(q.response_delay_hours.maximum>72);assert.ok(q.lifecycle_span_hours.maximum>168);
+ const broken=structuredClone(parts),poll=broken.flatMap(p=>p.data.polls).find(p=>p.history.some(h=>h.action==='reopen'));
+ poll.slots.find(s=>s.id===poll.meetings[0].slot_id).active=true;
+ assert.ok(quality(broken).issues.some(x=>x.includes('reopening without changed arrangement')));
+ const badTime=structuredClone(parts),responded=badTime.flatMap(p=>p.data.polls).find(p=>p.responses.length);
+ responded.responses[0].at='2024-12-31T00:00:00Z';
+ assert.ok(quality(badTime).issues.some(x=>x.includes('response before publication')));
+});
