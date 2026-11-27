@@ -2,20 +2,20 @@
 
 SpaceBook v1 implements the scope approved on PR #289 at proposal commit `958b33ff436cc52f148ff0a0ad1522113dbcd988`. The reviewer additionally confirmed the synthetic-only dataset and requested a real end-to-end replay/replacement case; that case is covered below. Implementation acceptance and final maintainer merge remain outstanding.
 
-Implementation commit: `81561319a262e3d2008e2e642e7f2f63da797c59`. All final App-specific reports and model trials identify the same frozen package SHA-256:
+Business implementation commit: `81561319a262e3d2008e2e642e7f2f63da797c59`. The business, MCP, dataset and final model-trial reports identify this tested package SHA-256:
 
 `7518e3467fc950bcadf5f046c1b2dc96ace892e864e56c23ebbdea48ac34ba28`
 
-The following evidence-only commit does not change this package. [Manifest](reports/manifest.json) records the base revision, versions and model usage. The untouched baseline runtime was extracted with `git archive 25d5597 runtime`; no runtime or shared reference-App changes are part of this implementation. Local reproduction used Node 22.16.0, public runtime 1.6.0 / Core API 1.2.0, Playwright 1.56.1 and its Chromium 141 browser. Node 18 compatibility was checked separately. Run commands from [VALIDATION.md](../../../apps/spacebook/VALIDATION.md); no model credential is needed for deterministic tests.
+The first clean-checkout CI run exposed an untracked empty `assets/` directory. Packaging fix `d995d97b417be8f25f35dcb1df062c5fca3c4a64` adds only `assets/README.md`; all executable code, schemas, fixtures and tests are byte-identical. The final distributable package hash is `5613867d1d9af2d3ed250559c4d27e81eacfd94720b11166161c29e439540f92`. [Exact packaging change](reports/packaging-fix.json), [clean-checkout verifier](reports/clean-checkout.json), [final base verifier](reports/base-validator-final.json), [final Node 18 verifier](reports/node18-final.json) and [clean-checkout browser rerun](reports/clean-browser/browser.json) verify the corrected distribution. Earlier reports retain their original hashes; no model trial was rerun merely for the directory README. [Manifest](reports/manifest.json) records the base revision, versions and model usage. The untouched baseline runtime was extracted with `git archive 25d5597 runtime`; no runtime or shared reference-App changes are part of this implementation. Local reproduction used Node 22.16.0, public runtime 1.6.0 / Core API 1.2.0, Playwright 1.56.1 and its Chromium 141 browser. Node 18 compatibility was checked separately. Run commands from [VALIDATION.md](../../../apps/spacebook/VALIDATION.md); no model credential is needed for deterministic tests.
 
 ## Results
 
 | Requirement | Result | Evidence |
 | --- | --- | --- |
 | Business transitions and historical cutoff | Passed, 18 tests (17 business + 1 history) | [Raw TAP](reports/business.log) |
-| Official public verifier | Passed, 40 checks | [Report including standalone TAP/example](reports/common.json) |
-| Untouched base-runtime verifier | Passed, 40 checks | [Base report](reports/base-validator.json) |
-| Node 18 compatibility | Passed, 40 checks | [Node 18 report](reports/node18.json) |
+| Official public verifier | Passed, 40 checks | [Final clean-checkout report](reports/clean-checkout.json); [original report](reports/common.json) |
+| Untouched base-runtime verifier | Passed, 40 checks | [Final base report](reports/base-validator-final.json) |
+| Node 18 compatibility | Passed, 40 checks | [Final Node 18 report](reports/node18-final.json) |
 | Real MCP business/state/concurrency | Passed, 35 checks | [Trace and assertions](reports/integration.json) |
 | Historical dataset loading and retrieval | Passed, 14 checks | [Full dataset and eight scenario loads](reports/dataset.json) |
 | Actual browser flows | Passed, 15 checks | [Browser report with ordered screenshots and persisted versions](reports/browser.json) |
@@ -69,7 +69,7 @@ All four final runs completed suitable bookings; recovery runs created linked re
 - [Attempt 2](reports/agent-attempt-2/agent-smoke.json): 2/4 passed. Ordinary booking succeeded. One recovery run still stopped at built-in-video filtering; the other held a replacement bundle first and then collided with its own hold. Added a search-result explanation of individual-resource filtering and an owned-hold conflict diagnostic; replacement's documented direct-allocation behavior remained unchanged.
 - Final batch: 4/4 passed after those interface changes. Entire earlier batches and transcripts remain available; final results are not assembled by selecting successes across batches.
 
-Early local harness execution under the restricted process environment produced empty child outputs and a failed MCP launch; it was rerun with actual child-process execution enabled. The initial browser launch lacked its default-cache executable; final runs used the already installed matching browser distribution. These environment setup issues are not counted as agent reasoning failures. Visual inspection also corrected missing content padding before final browser captures.
+Early local harness execution under the restricted process environment produced empty child outputs and a failed MCP launch; it was rerun with actual child-process execution enabled. The initial browser launch lacked its default-cache executable; final runs used the already installed matching browser distribution. These environment setup issues are not counted as agent reasoning failures. The first remote public-runtime/base jobs failed because Git omitted the empty asset directory; the tracked README fix was checked against an actual `git archive` export, and the complete browser flow was rerun from that export. Visual inspection also corrected missing content padding before final browser captures.
 
 ## Handoff
 

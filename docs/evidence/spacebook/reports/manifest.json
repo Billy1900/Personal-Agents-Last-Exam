@@ -11,5 +11,8 @@
     "completion_tokens": 1471
   },
   "final_model_reservation_usd": 4.556010000000001,
-  "all_batches_reservation_usd": 11.07449
+  "all_batches_reservation_usd": 11.07449,
+  "packaging_commit": "d995d97b417be8f25f35dcb1df062c5fca3c4a64",
+  "final_package_sha256": "5613867d1d9af2d3ed250559c4d27e81eacfd94720b11166161c29e439540f92",
+  "packaging_change": "Only assets/README.md; see packaging-fix.json"
 }
